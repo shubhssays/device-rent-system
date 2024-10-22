@@ -9,7 +9,7 @@ import { Device } from './devices/device.model';
 import { Rental } from './rentals/rental.model';
 import { User } from './users/user.model';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { ResponseInterceptor } from '../interceptors/response.interceptor';
+import { ResponseInterceptor } from './interceptors/response.interceptor';
 
 @Module({
     imports: [
