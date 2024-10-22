@@ -17,28 +17,4 @@ export class UsersService {
     async findOne(id: number): Promise<User> {
         return this.userRepository.findByPk(id);
     }
-
-    // Create a new user
-    async create(userData: Partial<User>): Promise<User> {
-        return this.userRepository.create(userData);
-    }
-
-    // Update user by ID
-    async update(id: number, updateData: Partial<User>): Promise<User> {
-        const user = await this.findOne(id);
-        if (user) {
-            return user.update(updateData);
-        }
-        throw new Error('User not found');
-    }
-
-    // Delete user by ID
-    async remove(id: number): Promise<void> {
-        const user = await this.findOne(id);
-        if (user) {
-            await user.destroy();
-        } else {
-            throw new Error('User not found');
-        }
-    }
 }
