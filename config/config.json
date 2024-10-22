@@ -1,0 +1,11 @@
+{
+  "development": {
+    "username": "root",
+    "password": null,
+    "database": "device_rent_system_dev",
+    "host": "127.0.0.1",
+    "dialect": "sqlite",
+    "storage": "./database.sqlite",
+    "migrationStoragePath": "sequelizeMeta.ts"
+  }
+}
