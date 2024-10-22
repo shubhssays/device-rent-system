@@ -5,10 +5,10 @@
   },
   "test": {
     "dialect": "sqlite",
-    "storage": "./dist/database.test.sqlite"
+    "storage": "./database.sqlite"
   },
   "production": {
     "dialect": "sqlite",
-    "storage": "./dist/database.test.sqlite"
+    "storage": "./database.sqlite"
   }
 }
