@@ -10,4 +10,8 @@ export class DevicesService {
         return this.deviceModel.findAll({ where: { isAvailable: true }, attributes: { exclude: ['createdAt', 'updatedAt'] } });
     }
 
+    async findUnAvailable() {
+        return this.deviceModel.findAll({ where: { isAvailable: false }, attributes: { exclude: ['createdAt', 'updatedAt'] } });
+    }
+
 }

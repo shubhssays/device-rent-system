@@ -13,4 +13,13 @@ export class DevicesController {
             devices,
         }
     }
+
+    @Get('unavailable')
+    async findUnAvailable() {
+        const devices = await this.devicesService.findUnAvailable();
+        return {
+            message: 'Devices unavailable',
+            devices,
+        }
+    }
 }
