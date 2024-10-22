@@ -3,7 +3,7 @@ import { Device } from '../devices/device.model';
 import { User } from '../users/user.model';
 
 @Table
-export class Rental extends Model {
+export class Rental extends Model<Rental> {
     @ForeignKey(() => Device)
     @Column
     deviceId: number;
