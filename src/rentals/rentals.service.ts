@@ -45,6 +45,7 @@ export class RentalsService {
 
         try {
             const rental = await this.rentalModel.findByPk(rentalId, { transaction });
+            console.log('rental', rental);
             if (!rental) {
                 throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
             }
@@ -75,30 +76,14 @@ export class RentalsService {
 
             return { message: 'Device returned successfully' };
         } catch (error) {
+            if(error instanceof HttpException) {
+                throw error;
+            }
             // Rollback the transaction if any error occurs
             await transaction.rollback();
             throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    // async returnDevice(rentalId: number) {
-    //     const rental = await this.rentalModel.findByPk(rentalId);
-    //     if (!rental || rental.returnedOn) {
-    //         throw new HttpException('Invalid rental or already returned', HttpStatus.BAD_REQUEST);
-    //     }
-
-    //     const device = await this.deviceModel.findByPk(rental.deviceId);
-    //     rental.returnedOn = new Date();
-    //     await rental.save();
-
-    //     device.isAvailable = true;
-    //     await device.save();
-
-    //     // Send return confirmation email asynchronously
-    //     // await this.notificationService.sendEmail(user.email, 'Device Returned');
-
-    //     return { message: 'Device returned successfully' };
-    // }
 
     async getUserRentals(userId: number) {
         return this.rentalModel.findAll({ where: { userId }, include: [Device] });
