@@ -19,10 +19,19 @@ export class RentalsController {
 
     @Get('user/:userId')
     async getUserRentals(@Param('userId') userId: number) {
-        const rentedDevices = await this.rentalsService.getUserRentals(userId);
+        const rentedDevices = await this.rentalsService.getUserRentals(userId) || [];
         return {
             message: 'User rentals fetched successfully',
-            rentedDevices
+            rentedDevices: rentedDevices,
+        }
+    }
+
+    @Get('/')
+    async getRentals() {
+        const rentedDevices = await this.rentalsService.getAllRentals();
+        return {
+            message: 'All rentals fetched successfully',
+            rentedDevices: rentedDevices,
         }
     }
 }

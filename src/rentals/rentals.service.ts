@@ -77,7 +77,7 @@ export class RentalsService {
         } catch (error) {
             // Rollback the transaction if any error occurs
             await transaction.rollback();
-            if(error instanceof HttpException) {
+            if (error instanceof HttpException) {
                 throw error;
             }
             throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -85,6 +85,55 @@ export class RentalsService {
     }
 
     async getUserRentals(userId: number) {
-        return this.rentalModel.findAll({ where: { userId }, include: [Device] });
+        let rentedDevices: any = await this.rentalModel.findAll({
+            where: { userId },
+            attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
+            include: [
+                {
+                    model: Device,
+                    attributes: ['id', 'name', 'isAvailable']
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'name', 'email']
+                }
+            ]
+        });
+
+        rentedDevices = this.formatRentalDevicesData(Array.isArray(rentedDevices) ? rentedDevices : [rentedDevices]) as any;
+        return rentedDevices;
+    }
+
+    async getAllRentals() {
+        let rentedDevices: any = await this.rentalModel.findAll({
+            attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
+            include: [
+                {
+                    model: Device,
+                    attributes: ['id', 'name', 'isAvailable']
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'name', 'email']
+                }
+            ]
+        });
+
+        rentedDevices = this.formatRentalDevicesData(Array.isArray(rentedDevices) ? rentedDevices : [rentedDevices]) as any;
+        return rentedDevices;
+    }
+
+    formatRentalDevicesData(rentedDevices: Rental[]) {
+        rentedDevices = JSON.parse(JSON.stringify(rentedDevices));
+        const rentedDevicesDetails = rentedDevices.map((rd) => {
+            const rentedOn = new Date(rd.rentedOn);
+            const returnedOn = rd.returnedOn ? new Date(rd.returnedOn) : new Date();
+            const rentedForDays = Math.ceil((returnedOn.getTime() - rentedOn.getTime()) / (1000 * 60 * 60 * 24)); // Calculate days
+            return {
+                ...rd,
+                rentedForDays,
+            }
+        });
+        return rentedDevicesDetails;
     }
 }
