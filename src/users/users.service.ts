@@ -10,7 +10,9 @@ export class UsersService {
 
     // Get all users
     async findAll(): Promise<User[]> {
-        return this.userRepository.findAll();
+        return this.userRepository.findAll({
+            attributes: ['id', 'name', 'email'],
+        });
     }
 
     // Find user by ID

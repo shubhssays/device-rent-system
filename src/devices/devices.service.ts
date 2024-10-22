@@ -7,7 +7,7 @@ export class DevicesService {
     constructor(@InjectModel(Device) private deviceModel: typeof Device) { }
 
     async findAvailable() {
-        return this.deviceModel.findAll({ where: { isAvailable: true } });
+        return this.deviceModel.findAll({ where: { isAvailable: true }, attributes: { exclude: ['createdAt', 'updatedAt'] } });
     }
 
 }

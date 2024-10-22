@@ -19,10 +19,14 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
             map((data) => {
                 // Customize the successful response format here
                 const statusCode = context.switchToHttp().getResponse().statusCode;
+
+                // Check if data is an array or an object
+                const formattedData = Array.isArray(data) ? data : { data };
+
                 return {
                     success: statusCode >= 200 && statusCode < 300,
                     statusCode: statusCode,
-                    data: data || {},
+                    ...formattedData, // Spread formatted data
                 };
             }),
             catchError((error) => {
@@ -35,7 +39,6 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
                     statusCode: statusCode,
                     data: {
                         message: error.message || 'Internal Server Error', // Default error message
-                        ...(error.response || {}), // Include additional error details if available
                     },
                 };
 
