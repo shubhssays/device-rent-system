@@ -6,7 +6,11 @@ export class DevicesController {
     constructor(private devicesService: DevicesService) { }
 
     @Get('available')
-    findAvailable() {
-        return this.devicesService.findAvailable();
+    async findAvailable() {
+        const devices = await this.devicesService.findAvailable();
+        return {
+            message: 'Devices available for rent',
+            devices,
+        }
     }
 }
