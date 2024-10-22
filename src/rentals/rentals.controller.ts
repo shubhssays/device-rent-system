@@ -7,16 +7,22 @@ export class RentalsController {
 
     @Post('allot')
     async allotDevice(@Body() data: { userId: number; deviceId: number }) {
-        return this.rentalsService.allotDevice(data.userId, data.deviceId);
+        const result = this.rentalsService.allotDevice(data.userId, data.deviceId);
+        return result;
     }
 
     @Post('return')
-    returnDevice(@Body() data: { rentalId: number }) {
-        return this.rentalsService.returnDevice(data.rentalId);
+    async returnDevice(@Body() data: { rentalId: number }) {
+        const result = await this.rentalsService.returnDevice(data.rentalId);
+        return result
     }
 
     @Get('user/:userId')
-    getUserRentals(@Param('userId') userId: number) {
-        return this.rentalsService.getUserRentals(userId);
+    async getUserRentals(@Param('userId') userId: number) {
+        const rentedDevices = await this.rentalsService.getUserRentals(userId);
+        return {
+            message: 'User rentals fetched successfully',
+            rentedDevices
+        }
     }
 }

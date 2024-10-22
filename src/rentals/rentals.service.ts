@@ -45,7 +45,6 @@ export class RentalsService {
 
         try {
             const rental = await this.rentalModel.findByPk(rentalId, { transaction });
-            console.log('rental', rental);
             if (!rental) {
                 throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
             }
@@ -76,11 +75,11 @@ export class RentalsService {
 
             return { message: 'Device returned successfully' };
         } catch (error) {
+            // Rollback the transaction if any error occurs
+            await transaction.rollback();
             if(error instanceof HttpException) {
                 throw error;
             }
-            // Rollback the transaction if any error occurs
-            await transaction.rollback();
             throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
