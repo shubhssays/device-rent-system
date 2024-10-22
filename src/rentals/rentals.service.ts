@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Rental } from './rental.model';
 import { Device } from '../devices/device.model';
 import { User } from '../users/user.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class RentalsService {
@@ -10,12 +11,18 @@ export class RentalsService {
         @InjectModel(Rental) private rentalModel: typeof Rental,
         @InjectModel(Device) private deviceModel: typeof Device,
         @InjectModel(User) private userModel: typeof User,
+        private sequelize: Sequelize,
     ) { }
 
     async allotDevice(userId: number, deviceId: number) {
         const device = await this.deviceModel.findByPk(deviceId);
-        if (!device || !device.isAvailable) {
+        if (!device) {
             throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if the device is already allotted
+        if (!device.isAvailable) {
+            throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
         }
 
         const user = await this.userModel.findByPk(userId);
@@ -23,34 +30,75 @@ export class RentalsService {
             throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
         }
 
-        await this.rentalModel.create({ userId, deviceId, rentedOn: new Date() });
+        const rental = await this.rentalModel.create({ userId, deviceId, rentedOn: new Date() });
         device.isAvailable = false;
         await device.save();
 
         // Send email asynchronously using a queue (e.g., Bull)
         // await this.notificationService.sendEmail(user.email, 'Device Allotted');
 
-        return { message: 'Device allotted successfully' };
+        return { rentalId: rental.id, message: 'Device allotted successfully' };
     }
 
     async returnDevice(rentalId: number) {
-        const rental = await this.rentalModel.findByPk(rentalId);
-        if (!rental || rental.returnedOn) {
-            throw new HttpException('Invalid rental or already returned', HttpStatus.BAD_REQUEST);
+        const transaction = await this.sequelize.transaction();
+
+        try {
+            const rental = await this.rentalModel.findByPk(rentalId, { transaction });
+            if (!rental) {
+                throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
+            }
+
+            // Check if the device is already returned
+            if (rental.returnedOn) {
+                throw new HttpException('Device already returned', HttpStatus.BAD_REQUEST);
+            }
+
+            const device = await this.deviceModel.findByPk(rental.deviceId, { transaction });
+            if (!device) {
+                throw new HttpException('Device not found', HttpStatus.NOT_FOUND);
+            }
+
+            // Update rental record to set returnedOn date
+            rental.returnedOn = new Date();
+            await rental.save({ transaction });
+
+            // Update the device status to available
+            device.isAvailable = true;
+            await device.save({ transaction });
+
+            // Commit the transaction
+            await transaction.commit();
+
+            // Send return confirmation email asynchronously (optional)
+            // await this.notificationService.sendEmail(user.email, 'Device Returned');
+
+            return { message: 'Device returned successfully' };
+        } catch (error) {
+            // Rollback the transaction if any error occurs
+            await transaction.rollback();
+            throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        const device = await this.deviceModel.findByPk(rental.deviceId);
-        rental.returnedOn = new Date();
-        await rental.save();
-
-        device.isAvailable = true;
-        await device.save();
-
-        // Send return confirmation email asynchronously
-        // await this.notificationService.sendEmail(user.email, 'Device Returned');
-
-        return { message: 'Device returned successfully' };
     }
+
+    // async returnDevice(rentalId: number) {
+    //     const rental = await this.rentalModel.findByPk(rentalId);
+    //     if (!rental || rental.returnedOn) {
+    //         throw new HttpException('Invalid rental or already returned', HttpStatus.BAD_REQUEST);
+    //     }
+
+    //     const device = await this.deviceModel.findByPk(rental.deviceId);
+    //     rental.returnedOn = new Date();
+    //     await rental.save();
+
+    //     device.isAvailable = true;
+    //     await device.save();
+
+    //     // Send return confirmation email asynchronously
+    //     // await this.notificationService.sendEmail(user.email, 'Device Returned');
+
+    //     return { message: 'Device returned successfully' };
+    // }
 
     async getUserRentals(userId: number) {
         return this.rentalModel.findAll({ where: { userId }, include: [Device] });
