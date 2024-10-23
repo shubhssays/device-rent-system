@@ -8,8 +8,9 @@ import * as path from 'path';
 import { Device } from './devices/device.model';
 import { Rental } from './rentals/rental.model';
 import { User } from './users/user.model';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { ZodValidationPipe } from 'nestjs-zod'
 
 @Module({
     imports: [
@@ -30,6 +31,10 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
             provide: APP_INTERCEPTOR,
             useClass: ResponseInterceptor, // Register the interceptor globally
         },
+        {
+            provide: APP_PIPE,
+            useClass: ZodValidationPipe, // Register the ZodValidationPipe globally
+        }
     ],
 })
 
