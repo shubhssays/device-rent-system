@@ -7,7 +7,7 @@ import { Rental } from './rental.model';
 import { Device } from '../devices/device.model';
 import { User } from '../users/user.model';
 import { BullModule } from '@nestjs/bull';
-import { EmailProcessor } from 'src/processor/email.processor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -15,6 +15,7 @@ import { EmailProcessor } from 'src/processor/email.processor';
     BullModule.registerQueue({
       name: process.env.EMAIL_QUEUE_NAME,
     }),
+    ScheduleModule.forRoot() // <-- This will register the necessary providers like SchedulerRegistry
   ],
   providers: [RentalsService],
   controllers: [RentalsController],
