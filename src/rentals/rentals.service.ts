@@ -45,16 +45,11 @@ export class RentalsService {
             await device.save({ transaction });
 
             // Send email asynchronously using a queue
-            try{
-                const result =  await this.emailQueue.add('send_email_notification', {
-                    to: user.email,
-                    subject: 'Device Allocated',
-                    body: 'You have been allocated a device. Please collect it from the admin.'
-                });
-                console.log('Email sent successfully', result);
-            }catch(err){
-                console.error('Error sending email', err);
-            }
+            await this.emailQueue.add('send_email_notification', {
+                to: user.email,
+                subject: 'Device Allocated',
+                body: 'You have been allocated a device. Please collect it from the admin.'
+            });
 
             // Commit the transaction
             await transaction.commit();
