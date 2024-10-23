@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { DevicesModule } from './devices/devices.module';
 import { RentalsModule } from './rentals/rentals.module';
@@ -69,13 +69,10 @@ redisClient.on('connect', () => {
     ],
 })
 
-export class AppModule implements OnModuleInit, NestModule {
+export class AppModule implements OnModuleInit {
     private dbFilePath = path.resolve(__dirname, './database.sqlite');
 
     constructor() { }
-    configure(consumer: MiddlewareConsumer) {
-        // throw new Error('Method not implemented.');
-    }
 
     async onModuleInit() {
         await this.createDatabaseFileIfNotExists();
