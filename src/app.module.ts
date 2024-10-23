@@ -11,6 +11,7 @@ import { User } from './users/user.model';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
     imports: [
@@ -20,6 +21,15 @@ import { ZodValidationPipe } from 'nestjs-zod';
             // autoLoadModels: true,
             // synchronize: true,
             models: [Device, User, Rental], // Register models here
+        }),
+        BullModule.forRoot({
+            redis: {
+                host: process.env.REDIS_HOST, // Your Redis server host
+                port: +process.env.REDIS_PORT, // Your Redis server port
+            },
+        }),
+        BullModule.registerQueue({
+            name: 'send_email_notification', // Name of the queue
         }),
         DevicesModule,   // Register DevicesModule
         RentalsModule,   // Register RentalsModule
