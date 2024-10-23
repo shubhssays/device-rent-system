@@ -243,8 +243,6 @@ export class RentalsService {
             ]
         });
 
-        console.log('Overdue Rentals:', overdueRentals.length);
-
         // Send email notifications to users with overdue rentals
         for (const rental of overdueRentals) {
             const user = rental.user;
@@ -255,7 +253,7 @@ export class RentalsService {
             });
         }
 
-        const result = { message: 'Overdue rentals checked and notifications sent if any.' };
+        const result = { message: overdueRentals.length > 0 ? 'Overdue rentals checked and notifications sent.' : 'No overdue rentals found.' };
         console.log(result);
         return result;
     }
