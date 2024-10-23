@@ -14,7 +14,7 @@ export class RentalsService {
         @InjectModel(Device) private deviceRepository: typeof Device,
         @InjectModel(User) private userRepository: typeof User,
         private sequelize: Sequelize,
-        @InjectQueue('send_email_notification') private emailQueue: Queue
+        @InjectQueue(process.env.EMAIL_QUEUE_NAME) private emailQueue: Queue
     ) { }
 
     async allotDevice(userId: number, deviceId: number) {
@@ -45,7 +45,7 @@ export class RentalsService {
             await device.save({ transaction });
 
             // Send email asynchronously using a queue
-            await this.emailQueue.add('send_email_notification', {
+            await this.emailQueue.add({
                 to: user.email,
                 subject: 'Device Allocated',
                 body: 'You have been allocated a device. Please collect it from the admin.'
@@ -102,7 +102,7 @@ export class RentalsService {
             await transaction.commit();
 
             // Send return confirmation email asynchronously (optional)
-            await this.emailQueue.add('send_email_notification', {
+            await this.emailQueue.add({
                 to: user.email,
                 subject: 'Device Returned',
                 body: 'You have returned the device. Thank you!'

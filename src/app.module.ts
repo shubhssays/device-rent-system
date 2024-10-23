@@ -12,7 +12,9 @@ import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BullModule } from '@nestjs/bull';
-const redis = require( 'redis');
+import { EmailProcessor } from './processor/email.processor';
+import { EmailModule } from './email/email.module';
+const redis = require('redis');
 
 const redisClient: any = redis.createClient({
     host: process.env.REDIS_HOST,
@@ -38,8 +40,13 @@ redisClient.on('error', (error) => {
             redis: redisClient,
         }),
         BullModule.registerQueue({
-            name: 'send_email_notification', // Name of the queue
+            name: process.env.EMAIL_QUEUE_NAME, // Name of the queue
+            defaultJobOptions: {
+                backoff: 10000,
+                attempts: Number.MAX_SAFE_INTEGER,
+            },
         }),
+        EmailModule,
         DevicesModule,   // Register DevicesModule
         RentalsModule,   // Register RentalsModule
         UsersModule,     // Register UsersModule
@@ -53,7 +60,7 @@ redisClient.on('error', (error) => {
         {
             provide: APP_PIPE,
             useClass: ZodValidationPipe, // Register the ZodValidationPipe globally
-        }
+        },
     ],
 })
 
