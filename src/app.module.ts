@@ -89,7 +89,7 @@ export class AppModule implements OnModuleInit, NestModule {
         } catch (error) {
             // If it does not exist, create it
             await fs.writeFile(dbFilePath, '');
-            console.log(`Database file ${dbFilePath} created.`);
+            logger.log(`Database file ${dbFilePath} created.`);
         }
     }
 }

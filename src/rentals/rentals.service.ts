@@ -8,6 +8,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { Op } from 'sequelize';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { MyLogger } from 'src/logger/logger.service';
+const logger = new MyLogger();
 
 @Injectable()
 export class RentalsService {
@@ -58,7 +60,7 @@ export class RentalsService {
 
             return { rentalId: rental.id, message: 'Device allotted successfully' };
         } catch (error) {
-            console.error(error);
+            logger.error(error.message, error.stack);
             // Rollback the transaction if any error occurs
             await transaction.rollback();
             if (error instanceof HttpException) {
@@ -112,6 +114,7 @@ export class RentalsService {
 
             return { message: 'Device returned successfully' };
         } catch (error) {
+            logger.error(error.message, error.stack);
             // Rollback the transaction if any error occurs
             await transaction.rollback();
             if (error instanceof HttpException) {
@@ -254,7 +257,6 @@ export class RentalsService {
         }
 
         const result = { message: overdueRentals.length > 0 ? 'Overdue rentals checked and notifications sent.' : 'No overdue rentals found.' };
-        console.log(result);
-        return result;
+        logger.log(result.message);
     }
 }
