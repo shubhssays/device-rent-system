@@ -4,6 +4,8 @@ import { Rental } from './rental.model';
 import { Device } from '../devices/device.model';
 import { User } from '../users/user.model';
 import { Sequelize } from 'sequelize-typescript';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class RentalsService {
@@ -12,6 +14,7 @@ export class RentalsService {
         @InjectModel(Device) private deviceRepository: typeof Device,
         @InjectModel(User) private userRepository: typeof User,
         private sequelize: Sequelize,
+        @InjectQueue('send_email_notification') private emailQueue: Queue
     ) { }
 
     async allotDevice(userId: number, deviceId: number) {
@@ -19,7 +22,6 @@ export class RentalsService {
 
         try {
             const device = await this.deviceRepository.findByPk(deviceId, { transaction, attributes: ['id', 'isAvailable'] });
-            console.log('device', device);
             if (!device) {
                 throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
             }
@@ -29,7 +31,7 @@ export class RentalsService {
                 throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
             }
 
-            const user = await this.userRepository.findByPk(userId, { transaction, attributes: ['id'] });
+            const user = await this.userRepository.findByPk(userId, { transaction, attributes: ['id', 'email'] });
             if (!user) {
                 throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
             }
@@ -42,14 +44,24 @@ export class RentalsService {
             device.isAvailable = false;
             await device.save({ transaction });
 
-            // Send email asynchronously using a queue (e.g., Bull)
-            // await this.notificationService.sendEmail(user.email, 'Device Allotted');
+            // Send email asynchronously using a queue
+            try{
+                const result =  await this.emailQueue.add('send_email_notification', {
+                    to: user.email,
+                    subject: 'Device Allocated',
+                    body: 'You have been allocated a device. Please collect it from the admin.'
+                });
+                console.log('Email sent successfully', result);
+            }catch(err){
+                console.error('Error sending email', err);
+            }
 
             // Commit the transaction
             await transaction.commit();
 
             return { rentalId: rental.id, message: 'Device allotted successfully' };
         } catch (error) {
+            console.error(error);
             // Rollback the transaction if any error occurs
             await transaction.rollback();
             if (error instanceof HttpException) {
@@ -73,6 +85,11 @@ export class RentalsService {
                 throw new HttpException('Device already returned', HttpStatus.BAD_REQUEST);
             }
 
+            const user = await this.userRepository.findByPk(rental.userId, { transaction, attributes: ['id', 'email'] });
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+            }
+
             const device = await this.deviceRepository.findByPk(rental.deviceId, { transaction, attributes: ['id'] });
             if (!device) {
                 throw new HttpException('Device not found', HttpStatus.NOT_FOUND);
@@ -90,7 +107,11 @@ export class RentalsService {
             await transaction.commit();
 
             // Send return confirmation email asynchronously (optional)
-            // await this.notificationService.sendEmail(user.email, 'Device Returned');
+            await this.emailQueue.add('send_email_notification', {
+                to: user.email,
+                subject: 'Device Returned',
+                body: 'You have returned the device. Thank you!'
+            });
 
             return { message: 'Device returned successfully' };
         } catch (error) {

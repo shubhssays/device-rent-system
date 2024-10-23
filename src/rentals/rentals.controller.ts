@@ -5,7 +5,9 @@ import { ZodValidationPipe } from 'src/pipes/ZodvalidationPipe';
 
 @Controller('rentals')
 export class RentalsController {
-    constructor(private rentalsService: RentalsService) { }
+    constructor(
+        private rentalsService: RentalsService,
+    ) { }
 
     @UsePipes(new ZodValidationPipe(RentedDeviceSchema))
     @Post('allot')
