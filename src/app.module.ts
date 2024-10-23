@@ -12,17 +12,14 @@ import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BullModule } from '@nestjs/bull';
-const redis = require('redis');
-const redisClient = redis.createClient({
+const redis = require( 'redis');
+
+const redisClient: any = redis.createClient({
     host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
+    port: +process.env.REDIS_PORT,
 });
 
 redisClient.connect();
-
-// redisClient.on('connect', () => {
-//     console.log('Connected to Redis');
-// });
 
 redisClient.on('error', (error) => {
     console.error('Redis error:', error);
