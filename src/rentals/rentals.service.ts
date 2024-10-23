@@ -6,6 +6,8 @@ import { User } from '../users/user.model';
 import { Sequelize } from 'sequelize-typescript';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import { Op } from 'sequelize';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class RentalsService {
@@ -70,7 +72,7 @@ export class RentalsService {
         const transaction = await this.sequelize.transaction();
 
         try {
-            const rental = await this.rentalRepository.findByPk(rentalId, { transaction, attributes: ['id', 'returnedOn', 'deviceId'] });
+            const rental = await this.rentalRepository.findByPk(rentalId, { transaction, attributes: ['id', 'returnedOn', 'deviceId', 'userId'] });
             if (!rental) {
                 throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
             }
@@ -206,5 +208,44 @@ export class RentalsService {
             }
         });
         return rentedDevicesDetails;
+    }
+
+    @Cron('* * * * * *')
+    async checkOverdueRentals() {
+        const overdueDays = 5;
+        const overdueDate = new Date();
+        overdueDate.setDate(overdueDate.getDate() - overdueDays);
+
+        const overdueRentals = await this.rentalRepository.findAll({
+            where: {
+                returnedOn: null,
+                rentedOn: {
+                    [Op.lte]: overdueDate
+                }
+            },
+            include: [
+                {
+                    model: Device,
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: User,
+                    attributes: ['id', 'email']
+                }
+            ]
+        });
+
+        for (const rental of overdueRentals) {
+            const user = rental.user;
+            await this.emailQueue.add({
+                to: user.email,
+                subject: 'Overdue Device Return',
+                body: `The device ${rental.device.name} is overdue for return. Please return it immediately.`
+            });
+        }
+
+        const result =  { message: 'Overdue rentals checked and notifications sent if any.' };
+        console.log(result);
+        return result;
     }
 }
