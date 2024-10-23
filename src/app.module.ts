@@ -13,7 +13,9 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { BullModule } from '@nestjs/bull';
 import { EmailModule } from './email/email.module';
+import { MyLogger } from './logger/logger.service';
 const redis = require('redis');
+const logger = new MyLogger();
 
 const redisClient: any = redis.createClient({
     host: process.env.REDIS_HOST,
@@ -23,8 +25,12 @@ const redisClient: any = redis.createClient({
 redisClient.connect();
 
 redisClient.on('error', (error) => {
-    console.error('Redis error:', error);
+    logger.error('Redis error:', error);
 });
+
+redisClient.on('connect', () => {
+    logger.log('Connected to Redis');
+})
 
 @Module({
     imports: [
