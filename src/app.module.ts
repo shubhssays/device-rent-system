@@ -10,7 +10,7 @@ import { Rental } from './rentals/rental.model';
 import { User } from './users/user.model';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
-import { ZodValidationPipe } from 'nestjs-zod'
+import { ZodValidationPipe } from 'nestjs-zod';
 
 @Module({
     imports: [
@@ -50,10 +50,8 @@ export class AppModule implements OnModuleInit {
     private async createDatabaseFileIfNotExists() {
         const dbFilePath = './database.sqlite';
         try {
-
             // Check if the database file exists
             await fs.access(dbFilePath);
-            console.log(`Database file ${dbFilePath} already exists.`);
         } catch (error) {
             // If it does not exist, create it
             await fs.writeFile(dbFilePath, '');

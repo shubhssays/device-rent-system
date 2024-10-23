@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, HttpException, HttpStatus, Param, UsePipes } from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpException, HttpStatus, Param, UsePipes, Query } from '@nestjs/common';
 import { RentalsService } from './rentals.service';
 import { RentedDeviceSchema, ReturnRentedDeviceSchema, UserRentedDeviceSchema } from 'src/schemas/rentals.schema';
 import { ZodValidationPipe } from 'src/pipes/ZodvalidationPipe';
@@ -21,10 +21,10 @@ export class RentalsController {
         return result
     }
 
-    @UsePipes(new ZodValidationPipe(UserRentedDeviceSchema))
+
     @Get('user/:userId')
-    async getUserRentals(@Param('userId') userId: number) {
-        const rentedDevices = await this.rentalsService.getUserRentals(userId) || [];
+    async getUserRentals(@Param(new ZodValidationPipe(UserRentedDeviceSchema)) params: { userId: string }) {
+        const rentedDevices = await this.rentalsService.getUserRentals(params.userId) || [];
         return {
             message: 'User rentals fetched successfully',
             rentedDevices: rentedDevices,

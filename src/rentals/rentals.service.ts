@@ -84,9 +84,9 @@ export class RentalsService {
         }
     }
 
-    async getUserRentals(userId: number) {
+    async getUserRentals(userId: string) {
         let rentedDevices: any = await this.rentalModel.findAll({
-            where: { userId },
+            where: { userId: Number(userId) },
             attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
             include: [
                 {

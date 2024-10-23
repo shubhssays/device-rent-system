@@ -1,5 +1,5 @@
 // rentals.module.ts
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod, Request } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { RentalsService } from './rentals.service';
 import { RentalsController } from './rentals.controller';
