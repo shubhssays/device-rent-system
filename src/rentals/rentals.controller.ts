@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, HttpException, HttpStatus, Param, UsePipes, Query } from '@nestjs/common';
 import { RentalsService } from './rentals.service';
-import { RentedDeviceSchema, ReturnRentedDeviceSchema, UserRentedDeviceSchema } from 'src/schemas/rentals.schema';
+import { ListSchema, RentedDeviceSchema, ReturnRentedDeviceSchema, UserRentedDeviceSchema } from 'src/schemas/rentals.schema';
 import { ZodValidationPipe } from 'src/pipes/ZodvalidationPipe';
 
 @Controller('rentals')
@@ -23,8 +23,12 @@ export class RentalsController {
 
 
     @Get('user/:userId')
-    async getUserRentals(@Param(new ZodValidationPipe(UserRentedDeviceSchema)) params: { userId: string }) {
-        const rentedDevices = await this.rentalsService.getUserRentals(params.userId) || [];
+    async getUserRentals(
+        @Param(new ZodValidationPipe(UserRentedDeviceSchema)) params: { userId: number },
+        @Query(new ZodValidationPipe(ListSchema)) query: { page?: number; pageSize?: number }
+
+    ) {
+        const rentedDevices = await this.rentalsService.getUserRentals(params.userId, query.page, query.pageSize) || [];
         return {
             message: 'User rentals fetched successfully',
             rentedDevices: rentedDevices,
@@ -32,8 +36,10 @@ export class RentalsController {
     }
 
     @Get('/')
-    async getRentals() {
-        const rentedDevices = await this.rentalsService.getAllRentals();
+    async getRentals(
+        @Query(new ZodValidationPipe(ListSchema)) query: { page?: number; pageSize?: number }
+    ) {
+        const rentedDevices = await this.rentalsService.getAllRentals(query.page, query.pageSize);
         return {
             message: 'All rentals fetched successfully',
             rentedDevices: rentedDevices,

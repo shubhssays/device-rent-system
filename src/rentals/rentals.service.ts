@@ -103,9 +103,11 @@ export class RentalsService {
         }
     }
 
-    async getUserRentals(userId: string) {
-        let rentedDevices: any = await this.rentalRepository.findAll({
-            where: { userId: Number(userId) },
+    async getUserRentals(userId: number, page: number = 1, pageSize: number = 10) {
+        const offset = (page - 1) * pageSize;
+
+        let { rows: rentedDevices, count }: any = await this.rentalRepository.findAndCountAll({
+            where: { userId },
             attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
             include: [
                 {
@@ -116,15 +118,33 @@ export class RentalsService {
                     model: User,
                     attributes: ['id', 'name', 'email']
                 }
-            ]
+            ],
+            limit: pageSize,
+            offset
         });
 
+        // Calculate total pages
+        const totalPages = Math.ceil(count / pageSize);
+
         rentedDevices = this.formatRentalDevicesData(Array.isArray(rentedDevices) ? rentedDevices : [rentedDevices]) as any;
-        return rentedDevices;
+        const response = {
+            data: rentedDevices,
+            pagination: {
+                totalItems: count,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
+        return response;
     }
 
-    async getAllRentals() {
-        let rentedDevices: any = await this.rentalRepository.findAll({
+    async getAllRentals(page: number = 1, pageSize: number = 10) {
+        const offset = (page - 1) * pageSize;
+
+        let { rows: rentedDevices, count }: any = await this.rentalRepository.findAndCountAll({
             attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
             include: [
                 {
@@ -135,11 +155,27 @@ export class RentalsService {
                     model: User,
                     attributes: ['id', 'name', 'email']
                 }
-            ]
+            ],
+            limit: pageSize,
+            offset
         });
 
+        // Calculate total pages
+        const totalPages = Math.ceil(count / pageSize);
+
         rentedDevices = this.formatRentalDevicesData(Array.isArray(rentedDevices) ? rentedDevices : [rentedDevices]) as any;
-        return rentedDevices;
+        const response = {
+            data: rentedDevices,
+            pagination: {
+                totalItems: count,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
+        return response;
     }
 
     formatRentalDevicesData(rentedDevices: Rental[]) {
