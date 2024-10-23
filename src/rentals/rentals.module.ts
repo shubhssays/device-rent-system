@@ -15,10 +15,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     BullModule.registerQueue({
       name: process.env.EMAIL_QUEUE_NAME,
     }),
-    ScheduleModule.forRoot() // <-- This will register the necessary providers like SchedulerRegistry
+    ScheduleModule.forRoot()
   ],
   providers: [RentalsService],
   controllers: [RentalsController],
-  exports: [RentalsService], // Export RentalsService for use in other modules if needed
+  exports: [RentalsService],
 })
 export class RentalsModule { }
