@@ -21,13 +21,11 @@ export const ReturnRentedDeviceSchema = z.object({
 export const UserRentedDeviceSchema = z.object({
     userId: z.string({
         required_error: "userId is required",
-        invalid_type_error: "userId must be a positive integer with a minimum value of 1",
-    }).refine((val) => !isNaN(parseInt(val, 10)) && parseInt(val, 10) > 0, {
-        message: "userId must be a positive integer with a minimum value of 1",
+        invalid_type_error: "userId must be a positive number with a minimum value of 1",
     }).transform((val) => {
         const parsed = parseInt(val, 10);
         if (isNaN(parsed) || parsed < 1) {
-            throw new Error("userId must be a positive integer with a minimum value of 1");
+            throw new Error("userId must be a positive number with a minimum value of 1");
         }
         return parsed;
     }),

@@ -6,12 +6,55 @@ import { Device } from './device.model';
 export class DevicesService {
     constructor(@InjectModel(Device) private deviceModel: typeof Device) { }
 
-    async findAvailable() {
-        return this.deviceModel.findAll({ where: { isAvailable: true }, attributes: { exclude: ['createdAt', 'updatedAt'] } });
+    async findAvailable(page: number = 1, pageSize: number = 10) {
+        const offset = (page - 1) * pageSize;
+        const { rows, count } = await this.deviceModel.findAndCountAll({
+            where: { isAvailable: true },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            limit: pageSize,
+            offset
+        });
+
+        // Calculate total pages
+        const totalPages = Math.ceil(count / pageSize);
+
+        const response = {
+            data: rows,
+            pagination: {
+                totalItems: count,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
+        return response;
     }
 
-    async findUnAvailable() {
-        return this.deviceModel.findAll({ where: { isAvailable: false }, attributes: { exclude: ['createdAt', 'updatedAt'] } });
-    }
+    async findUnAvailable(page: number = 1, pageSize: number = 10) {
+        const offset = (page - 1) * pageSize;
+        const { rows, count } = await this.deviceModel.findAndCountAll({
+            where: { isAvailable: false },
+            attributes: { exclude: ['createdAt', 'updatedAt'] },
+            limit: pageSize,
+            offset
+        });
 
+        // Calculate total pages
+        const totalPages = Math.ceil(count / pageSize);
+
+        const response = {
+            data: rows,
+            pagination: {
+                totalItems: count,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
+        return response;
+    }
 }
