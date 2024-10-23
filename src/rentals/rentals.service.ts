@@ -25,14 +25,20 @@ export class RentalsService {
         const transaction = await this.deviceRepository.sequelize.transaction();
 
         try {
-            const device = await this.deviceRepository.findByPk(deviceId, { transaction, attributes: ['id', 'isAvailable'] });
+            // Lock the device row to prevent concurrent updates
+            const device = await this.deviceRepository.findByPk(deviceId, {
+                transaction,
+                attributes: ['id', 'isAvailable'],
+                lock: transaction.LOCK.UPDATE
+            });
+
             if (!device) {
                 throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
             }
 
             // Check if the device is already allotted
             if (!device.isAvailable) {
-                throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
+                throw new HttpException('Device already allotted to another user', HttpStatus.BAD_REQUEST);
             }
 
             const user = await this.userRepository.findByPk(userId, { transaction, attributes: ['id', 'email'] });
