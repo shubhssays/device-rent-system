@@ -210,17 +210,25 @@ export class RentalsService {
         return rentedDevicesDetails;
     }
 
-    @Cron('* * * * * *')
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async checkOverdueRentals() {
-        const overdueDays = 5;
-        const overdueDate = new Date();
-        overdueDate.setDate(overdueDate.getDate() - overdueDays);
+        const overdueSeconds = 5 * 24 * 60 * 60; // 5 days = 5 * 24 hours * 60 minutes * 60 seconds
+        // const overdueSeconds = 5; // 5 seconds for testing
 
+        const currentDate = new Date();
+        const localTime = currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000); // Adjusting for local timezone offset
+        const overdueDate = new Date(localTime);
+
+
+        // Subtract the overdue time (converted to milliseconds) from the current date
+        overdueDate.setTime(overdueDate.getTime() - overdueSeconds * 1000);
+
+        // Find all rentals that have not been returned and were rented on or before the overdue date
         const overdueRentals = await this.rentalRepository.findAll({
             where: {
-                returnedOn: null,
+                returnedOn: null,  // Not yet returned
                 rentedOn: {
-                    [Op.lte]: overdueDate
+                    [Op.lte]: overdueDate  // Rented on or before the overdue date
                 }
             },
             include: [
@@ -235,6 +243,9 @@ export class RentalsService {
             ]
         });
 
+        console.log('Overdue Rentals:', overdueRentals.length);
+
+        // Send email notifications to users with overdue rentals
         for (const rental of overdueRentals) {
             const user = rental.user;
             await this.emailQueue.add({
@@ -244,7 +255,7 @@ export class RentalsService {
             });
         }
 
-        const result =  { message: 'Overdue rentals checked and notifications sent if any.' };
+        const result = { message: 'Overdue rentals checked and notifications sent if any.' };
         console.log(result);
         return result;
     }
