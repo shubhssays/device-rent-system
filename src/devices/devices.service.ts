@@ -4,11 +4,11 @@ import { Device } from './device.model';
 
 @Injectable()
 export class DevicesService {
-    constructor(@InjectModel(Device) private deviceModel: typeof Device) { }
+    constructor(@InjectModel(Device) private deviceRepository: typeof Device) { }
 
     async findAvailable(page: number = 1, pageSize: number = 10) {
         const offset = (page - 1) * pageSize;
-        const { rows, count } = await this.deviceModel.findAndCountAll({
+        const { rows, count } = await this.deviceRepository.findAndCountAll({
             where: { isAvailable: true },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
             limit: pageSize,
@@ -34,7 +34,7 @@ export class DevicesService {
 
     async findUnAvailable(page: number = 1, pageSize: number = 10) {
         const offset = (page - 1) * pageSize;
-        const { rows, count } = await this.deviceModel.findAndCountAll({
+        const { rows, count } = await this.deviceRepository.findAndCountAll({
             where: { isAvailable: false },
             attributes: { exclude: ['createdAt', 'updatedAt'] },
             limit: pageSize,

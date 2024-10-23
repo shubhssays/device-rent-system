@@ -8,17 +8,17 @@ import { Sequelize } from 'sequelize-typescript';
 @Injectable()
 export class RentalsService {
     constructor(
-        @InjectModel(Rental) private rentalModel: typeof Rental,
-        @InjectModel(Device) private deviceModel: typeof Device,
-        @InjectModel(User) private userModel: typeof User,
+        @InjectModel(Rental) private rentalRepository: typeof Rental,
+        @InjectModel(Device) private deviceRepository: typeof Device,
+        @InjectModel(User) private userRepository: typeof User,
         private sequelize: Sequelize,
     ) { }
 
     async allotDevice(userId: number, deviceId: number) {
-        const transaction = await this.deviceModel.sequelize.transaction();
+        const transaction = await this.deviceRepository.sequelize.transaction();
 
         try {
-            const device = await this.deviceModel.findByPk(deviceId, { transaction, attributes: ['id', 'isAvailable'] });
+            const device = await this.deviceRepository.findByPk(deviceId, { transaction, attributes: ['id', 'isAvailable'] });
             console.log('device', device);
             if (!device) {
                 throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
@@ -29,12 +29,12 @@ export class RentalsService {
                 throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
             }
 
-            const user = await this.userModel.findByPk(userId, { transaction, attributes: ['id'] });
+            const user = await this.userRepository.findByPk(userId, { transaction, attributes: ['id'] });
             if (!user) {
                 throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
             }
 
-            const rental = await this.rentalModel.create(
+            const rental = await this.rentalRepository.create(
                 { userId, deviceId, rentedOn: new Date() },
                 { transaction }
             );
@@ -63,7 +63,7 @@ export class RentalsService {
         const transaction = await this.sequelize.transaction();
 
         try {
-            const rental = await this.rentalModel.findByPk(rentalId, { transaction, attributes: ['id', 'returnedOn', 'deviceId'] });
+            const rental = await this.rentalRepository.findByPk(rentalId, { transaction, attributes: ['id', 'returnedOn', 'deviceId'] });
             if (!rental) {
                 throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
             }
@@ -73,7 +73,7 @@ export class RentalsService {
                 throw new HttpException('Device already returned', HttpStatus.BAD_REQUEST);
             }
 
-            const device = await this.deviceModel.findByPk(rental.deviceId, { transaction, attributes: ['id'] });
+            const device = await this.deviceRepository.findByPk(rental.deviceId, { transaction, attributes: ['id'] });
             if (!device) {
                 throw new HttpException('Device not found', HttpStatus.NOT_FOUND);
             }
@@ -104,7 +104,7 @@ export class RentalsService {
     }
 
     async getUserRentals(userId: string) {
-        let rentedDevices: any = await this.rentalModel.findAll({
+        let rentedDevices: any = await this.rentalRepository.findAll({
             where: { userId: Number(userId) },
             attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
             include: [
@@ -124,7 +124,7 @@ export class RentalsService {
     }
 
     async getAllRentals() {
-        let rentedDevices: any = await this.rentalModel.findAll({
+        let rentedDevices: any = await this.rentalRepository.findAll({
             attributes: { exclude: ['deviceId', 'userId', 'createdAt', 'updatedAt'] },
             include: [
                 {

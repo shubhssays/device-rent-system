@@ -9,14 +9,28 @@ export class UsersService {
     ) { }
 
     // Get all users
-    async findAll(): Promise<User[]> {
-        return this.userRepository.findAll({
+    async findAll(page: number = 1, pageSize: number = 10) {
+        const offset = (page - 1) * pageSize;
+        const { rows, count } = await this.userRepository.findAndCountAll({
             attributes: ['id', 'name', 'email'],
+            limit: pageSize,
+            offset
         });
-    }
 
-    // Find user by ID
-    async findOne(id: number): Promise<User> {
-        return this.userRepository.findByPk(id);
+        // Calculate total pages
+        const totalPages = Math.ceil(count / pageSize);
+
+        const response = {
+            data: rows,
+            pagination: {
+                totalItems: count,
+                totalPages: totalPages,
+                currentPage: page,
+                pageSize,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1,
+            },
+        };
+        return response;
     }
 }
