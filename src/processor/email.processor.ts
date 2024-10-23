@@ -17,7 +17,7 @@ export class EmailProcessor {
 
             // Simulating email sending delay
             await new Promise((resolve) => setTimeout(resolve, 2000));
-
+            done();
         } catch (e) {
             console.error('EmailProcessor error', e)
             throw e;
