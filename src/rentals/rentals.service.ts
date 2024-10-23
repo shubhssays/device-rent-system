@@ -15,36 +15,55 @@ export class RentalsService {
     ) { }
 
     async allotDevice(userId: number, deviceId: number) {
-        const device = await this.deviceModel.findByPk(deviceId);
-        if (!device) {
-            throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
+        const transaction = await this.deviceModel.sequelize.transaction();
+
+        try {
+            const device = await this.deviceModel.findByPk(deviceId, { transaction, attributes: ['id', 'isAvailable'] });
+            console.log('device', device);
+            if (!device) {
+                throw new HttpException('Device not available', HttpStatus.BAD_REQUEST);
+            }
+
+            // Check if the device is already allotted
+            if (!device.isAvailable) {
+                throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
+            }
+
+            const user = await this.userModel.findByPk(userId, { transaction, attributes: ['id'] });
+            if (!user) {
+                throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            }
+
+            const rental = await this.rentalModel.create(
+                { userId, deviceId, rentedOn: new Date() },
+                { transaction }
+            );
+
+            device.isAvailable = false;
+            await device.save({ transaction });
+
+            // Send email asynchronously using a queue (e.g., Bull)
+            // await this.notificationService.sendEmail(user.email, 'Device Allotted');
+
+            // Commit the transaction
+            await transaction.commit();
+
+            return { rentalId: rental.id, message: 'Device allotted successfully' };
+        } catch (error) {
+            // Rollback the transaction if any error occurs
+            await transaction.rollback();
+            if (error instanceof HttpException) {
+                throw error;
+            }
+            throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // Check if the device is already allotted
-        if (!device.isAvailable) {
-            throw new HttpException('Device already allotted to the user', HttpStatus.BAD_REQUEST);
-        }
-
-        const user = await this.userModel.findByPk(userId);
-        if (!user) {
-            throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
-        }
-
-        const rental = await this.rentalModel.create({ userId, deviceId, rentedOn: new Date() });
-        device.isAvailable = false;
-        await device.save();
-
-        // Send email asynchronously using a queue (e.g., Bull)
-        // await this.notificationService.sendEmail(user.email, 'Device Allotted');
-
-        return { rentalId: rental.id, message: 'Device allotted successfully' };
     }
 
     async returnDevice(rentalId: number) {
         const transaction = await this.sequelize.transaction();
 
         try {
-            const rental = await this.rentalModel.findByPk(rentalId, { transaction });
+            const rental = await this.rentalModel.findByPk(rentalId, { transaction, attributes: ['id', 'returnedOn', 'deviceId'] });
             if (!rental) {
                 throw new HttpException('Invalid rental', HttpStatus.BAD_REQUEST);
             }
@@ -54,7 +73,7 @@ export class RentalsService {
                 throw new HttpException('Device already returned', HttpStatus.BAD_REQUEST);
             }
 
-            const device = await this.deviceModel.findByPk(rental.deviceId, { transaction });
+            const device = await this.deviceModel.findByPk(rental.deviceId, { transaction, attributes: ['id'] });
             if (!device) {
                 throw new HttpException('Device not found', HttpStatus.NOT_FOUND);
             }
