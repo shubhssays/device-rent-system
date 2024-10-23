@@ -26,9 +26,8 @@ export class ZodValidationPipe implements PipeTransform {
     transform(value: any) {
         // Validate using Zod schema
         const result = this.schema.safeParse(value);
-        // console.log('result in ZodValidationPipe', result.error.errors.map(err => {
-        //     return `${err.path.join(".")}: ${err.message}`;
-        // }));
+        console.log('value ZodValidationPipe', value);
+        console.log('result in ZodValidationPipe', result.error);
         if (result.success) {
             return result.data;
         }

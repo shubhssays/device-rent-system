@@ -45,11 +45,12 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
                 return response;
             }),
             catchError((error) => {
+                console.log('error in response interceptor', error);
                 const response = context.switchToHttp().getResponse();
                 const statusCode = error instanceof HttpException ? error.getStatus() : 500;
                 let message = error.message;
                 if (error instanceof SchemaValidationError) {
-                    message = 'Validation failed';
+                    message = 'Bad request';
                 }
 
                 // Format the error response

@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, HttpException, HttpStatus, Param, UsePipes } from '@nestjs/common';
 import { RentalsService } from './rentals.service';
-import RentedDeviceSchema from 'src/schemas/rentals/rentedDevice.schema';
+import { RentedDeviceSchema, ReturnRentedDeviceSchema, UserRentedDeviceSchema } from 'src/schemas/rentals.schema';
 import { ZodValidationPipe } from 'src/pipes/ZodvalidationPipe';
 
 @Controller('rentals')
@@ -14,12 +14,14 @@ export class RentalsController {
         return result;
     }
 
+    @UsePipes(new ZodValidationPipe(ReturnRentedDeviceSchema))
     @Post('return')
     async returnDevice(@Body() data: { rentalId: number }) {
         const result = await this.rentalsService.returnDevice(data.rentalId);
         return result
     }
 
+    @UsePipes(new ZodValidationPipe(UserRentedDeviceSchema))
     @Get('user/:userId')
     async getUserRentals(@Param('userId') userId: number) {
         const rentedDevices = await this.rentalsService.getUserRentals(userId) || [];
