@@ -220,11 +220,11 @@ export class RentalsService {
         return rentedDevicesDetails;
     }
 
-    //@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-    @Cron('* * * * *') // for testing
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    // @Cron('* * * * *') // for testing
     async checkOverdueRentals() {
-        // const overdueSeconds = 5 * 24 * 60 * 60; // 5 days = 5 * 24 hours * 60 minutes * 60 seconds
-        const overdueSeconds = 5; // 5 seconds for testing
+        const overdueSeconds = 5 * 24 * 60 * 60; // 5 days = 5 * 24 hours * 60 minutes * 60 seconds
+        // const overdueSeconds = 5; // 5 seconds for testing
 
         const currentDate = new Date();
         const localTime = currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000); // Adjusting for local timezone offset
