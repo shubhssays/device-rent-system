@@ -28,6 +28,9 @@ The **Device Rent System** is a backend service designed to manage borrowing and
 # installing dependencies
 $ npm install
 
+# installing dependencies
+$ cp .env.example .env
+
 # running migration
 $ npm run db:migrate
 
