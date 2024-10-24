@@ -48,7 +48,7 @@ redisClient.on('connect', () => {
             name: process.env.EMAIL_QUEUE_NAME, // Name of the queue
             defaultJobOptions: {
                 backoff: 10000,
-                attempts: Number.MAX_SAFE_INTEGER,
+                attempts: 5,
             },
         }),
         EmailModule,
