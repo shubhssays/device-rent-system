@@ -1,0 +1,227 @@
+{
+	"info": {
+		"_postman_id": "6ca665e3-aa8d-4640-b106-06c5349bc08d",
+		"name": "Device Rent System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29716865"
+	},
+	"item": [
+		{
+			"name": "Devices",
+			"item": [
+				{
+					"name": "available devices list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/devices/available?page=1&pageSize=20",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"devices",
+								"available"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "not available devices list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/devices/unavailable?page=1&pageSize=10",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"devices",
+								"unavailable"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "default value is 1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10",
+									"description": "default value is 10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "users list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/users?page=1&pageSize=3",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "default value is 1"
+								},
+								{
+									"key": "pageSize",
+									"value": "3",
+									"description": "default value is 10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rentals",
+			"item": [
+				{
+					"name": "allot device",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": 1,\n    \"deviceId\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/rentals/allot",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rentals",
+								"allot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "return device",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rentalId\": 4\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/rentals/return",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rentals",
+								"return"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user rented device",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/rentals/user/1?page=1&pageSize=10",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rentals",
+								"user",
+								"1"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "default value is 1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10",
+									"description": "default value is 10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all rented device",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/rentals/?page=1&pageSize=10",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"rentals",
+								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "default value is 1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10",
+									"description": "default value is 10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
